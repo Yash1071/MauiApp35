@@ -1,0 +1,62 @@
+﻿@page "/addedititem/{id:int?}"
+@inject NavigationManager Navigation
+@inject Data.Itemservice Database
+@using MauiApp35.Data
+
+<h3>@(Id.HasValue ? "Edit Item" : "Add Book")</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<EditForm Model="@item" OnValidSubmit="SaveItem">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="name">Title</label>
+        <InputText id="name" class="form-control" @bind-Value="item.Title" />
+    </div>
+    <div class="mb-3">
+        <label for="description">Description</label>
+        <InputText id="description" class="form-control" @bind-Value="item.Description" />
+    </div>
+    <button type="submit" class="btn btn-primary">Add Book</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private Item item = new Item();
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (Id.HasValue)
+            {
+                item = await Database.GetItemAsync(Id.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private async Task SaveItem()
+    {
+        try
+        {
+            await Database.SaveItemAsync(item);
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+}
